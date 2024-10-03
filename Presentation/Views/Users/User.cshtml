@@ -1,14 +1,15 @@
 ﻿@page
-@model IndexModel
-@{
-    ViewData["Title"] = "DevExpress DataGrid Example";
-}
+@using Domain.Models
+@model UsersProfile
 
 <div>
-    <dx-data-grid id="gridContainer" data-source="@Model.DataSource">
-        <dxi-column data-field="ID" caption="ID" />
-        <dxi-column data-field="Name" caption="Name" />
-        <dxi-column data-field="Age" caption="Age" />
-        <dxi-column data-field="Email" caption="Email" />
+    <dx-data-grid id="gridContainer" remote-operations="true">
+        <dxi-column  data-field="Id" caption="ID" hidden></dxi-column>
+        <dxi-column data-field="UserName" caption="User Name"></dxi-column>
+        <dxi-column data-field="Email" caption="Email"></dxi-column>
+        <dxi-column data-field="IsVerified" caption="Verification"></dxi-column>
     </dx-data-grid>
 </div>
+@section Scripts {
+    <script src="~/js/Users.js" asp-append-version="true"></script>
+}

@@ -44,8 +44,8 @@ namespace Infrastructure.Implementations
         }
         public async Task<bool> AddUserProfileAsync(UsersProfile userProfile)
         {
-            string query = @"INSERT INTO UsersProfile (Id, UserName, Email, PasswordHash, VerificationToken, IsVerified, IsDeleted, DeletedBy, UpdatedBy, UpdatedOn, TokenExpiry) 
-                         VALUES (@Id, @UserName,@Email, @PasswordHash, @VerificationToken, @IsVerified, @IsDeleted, @DeletedBy, @UpdatedBy, @UpdatedOn, @TokenExpiry)";
+            string query = @"INSERT INTO UsersProfile (Id, UserName, Email, PasswordHash, VerificationToken, IsVerified, IsDeleted) 
+                         VALUES (@Id, @UserName,@Email, @PasswordHash, @VerificationToken, @IsVerified, @IsDeleted)";
 
             SqlParameter[] parameters = new SqlParameter[]
             {
@@ -55,11 +55,7 @@ namespace Infrastructure.Implementations
             new SqlParameter("@PasswordHash", userProfile.PasswordHash),
             new SqlParameter("@VerificationToken", (object)userProfile.VerificationToken ?? DBNull.Value),
             new SqlParameter("@IsVerified", userProfile.IsVerified),
-            new SqlParameter("@IsDeleted", userProfile.IsDeleted),
-            new SqlParameter("@DeletedBy", (object)userProfile.DeletedBy ?? DBNull.Value),
-            new SqlParameter("@UpdatedBy", (object)userProfile.UpdatedBy ?? DBNull.Value),
-            new SqlParameter("@UpdatedOn", (object)userProfile.UpdatedOn ?? DBNull.Value),
-            new SqlParameter("@TokenExpiry", (object)userProfile.TokenExpiry ?? DBNull.Value)
+            new SqlParameter("@IsDeleted", userProfile.IsDeleted)
             };
 
            return await ExecuteQueryNonQuery.ExecuteNonQueryAsync(query, parameters, _connectionString.GlobalConnection);
@@ -87,39 +83,38 @@ namespace Infrastructure.Implementations
         } 
         public async Task<List<UsersProfile>> GetAllUserProfileAsync()
         {
-            string query = "SELECT * FROM UsersProfile WHERE IsDeleted = 0";
-
-            DataTable result = await ExecuteQueryNonQuery.ExecuteQueryAsync(query, _connectionString.GlobalConnection);
-
-            if (result.Rows.Count > 0)
+            try
             {
-                var userProfile = DataTableMapper.DataTableToList<UsersProfile>(result);
+                string query = "SELECT * FROM UsersProfile WHERE IsDeleted = 0";
 
-                return userProfile;
+                DataTable result = await ExecuteQueryNonQuery.ExecuteQueryAsync(query, _connectionString.GlobalConnection);
+
+                if (result.Rows.Count > 0)
+                {
+                    var userProfile = DataTableMapper.DataTableToList<UsersProfile>(result);
+
+                    return userProfile;
+                }
+
             }
-
+            catch (Exception ex)
+            {
+                return null;
+            }
+            
             return null;
         }
         public async Task<bool> UpdateUserProfileAsync(UsersProfile userProfile)
         {
             string query = @"UPDATE UsersProfile 
-                         SET UserName = @UserName, Email = @Email, PasswordHash = @PasswordHash, VerificationToken = @VerificationToken, IsVerified = @IsVerified, 
-                             IsDeleted = @IsDeleted, DeletedBy = @DeletedBy, UpdatedBy = @UpdatedBy, UpdatedOn = @UpdatedOn, TokenExpiry = @TokenExpiry 
-                         WHERE Id = @Id";
+                         SET UserName = @UserName, Email = @Email, IsVerified = @IsVerified WHERE Id = @Id";
 
             SqlParameter[] parameters = new SqlParameter[]
             {
             new SqlParameter("@Id", userProfile.Id),
             new SqlParameter("@UserName", userProfile.UserName),
             new SqlParameter("@Email", userProfile.Email),
-            new SqlParameter("@PasswordHash", userProfile.PasswordHash),
-            new SqlParameter("@VerificationToken", (object)userProfile.VerificationToken ?? DBNull.Value),
             new SqlParameter("@IsVerified", userProfile.IsVerified),
-            new SqlParameter("@IsDeleted", userProfile.IsDeleted),
-            new SqlParameter("@DeletedBy", (object)userProfile.DeletedBy ?? DBNull.Value),
-            new SqlParameter("@UpdatedBy", (object)userProfile.UpdatedBy ?? DBNull.Value),
-            new SqlParameter("@UpdatedOn", (object)userProfile.UpdatedOn ?? DBNull.Value),
-            new SqlParameter("@TokenExpiry", (object)userProfile.TokenExpiry ?? DBNull.Value)
             };
 
             return await ExecuteQueryNonQuery.ExecuteNonQueryAsync(query, parameters, _connectionString.GlobalConnection);
@@ -163,10 +158,17 @@ namespace Infrastructure.Implementations
           };
             if (!string.IsNullOrEmpty(email))
             {
-                parameters.Append(new SqlParameter("@Email", email));
+                SqlParameter[] updatedParameters = new SqlParameter[parameters.Length + 1];
+
+                Array.Copy(parameters, updatedParameters, parameters.Length);
+
+                updatedParameters[parameters.Length] = new SqlParameter("@Email", email);
+
+                parameters = updatedParameters;
+
                 emailString = "AND Email = @Email";
             }
-          
+
             string query = $"SELECT * FROM UsersProfile WHERE VerificationToken = @VerificationToken {emailString} AND IsDeleted = 0";
 
             DataTable result = await ExecuteQueryNonQuery.ExecuteQueryAsync(query, parameters, _connectionString.GlobalConnection);

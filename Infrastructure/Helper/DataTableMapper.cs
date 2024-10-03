@@ -13,8 +13,6 @@ namespace Infrastructure.Helper
         public static List<T> DataTableToList<T>(DataTable dataTable) where T : new()
         {
             var dataList = new List<T>();
-
-           
             var properties = typeof(T).GetProperties();
 
             foreach (DataRow row in dataTable.Rows)
@@ -25,7 +23,23 @@ namespace Infrastructure.Helper
                 {
                     if (dataTable.Columns.Contains(prop.Name) && row[prop.Name] != DBNull.Value)
                     {
-                        prop.SetValue(item, Convert.ChangeType(row[prop.Name], prop.PropertyType));
+                        var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+
+                        try
+                        {
+                            if (propType.IsEnum)
+                            {
+                                prop.SetValue(item, Enum.Parse(propType, row[prop.Name].ToString()));
+                            }
+                            else
+                            {
+                                prop.SetValue(item, Convert.ChangeType(row[prop.Name], propType));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error converting property {prop.Name}: {ex.Message}");
+                        }
                     }
                 }
 
@@ -44,8 +58,11 @@ namespace Infrastructure.Helper
             {
                 if (row.Table.Columns.Contains(prop.Name) && row[prop.Name] != DBNull.Value)
                 {
-                    prop.SetValue(item, Convert.ChangeType(row[prop.Name], prop.PropertyType));
+                    var propType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+
+                    prop.SetValue(item, Convert.ChangeType(row[prop.Name], propType));
                 }
+
             }
 
             return item;

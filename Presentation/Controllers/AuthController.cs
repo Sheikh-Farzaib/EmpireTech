@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Interfaces.IServices;
 using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mail;
 using System.Reflection;
 
 namespace Presentation.Controllers
@@ -42,9 +43,10 @@ namespace Presentation.Controllers
                 {
                     HttpContext.Session.SetString("UserId", userProfile.Id.ToString());
                     HttpContext.Session.SetString("Email", userProfile.Email);
-                    return Ok(new { returnUrl = "/User/Dashboard" });
+                   await HttpContext.Session.CommitAsync();
+                    return Ok(new { returnUrl = "/Users/User" });
                 }
-                    return BadRequest("Not Created");
+                    return BadRequest("Provided credential is not valid or you're not verified");
             }
             catch (Exception)
             {
@@ -83,12 +85,16 @@ namespace Presentation.Controllers
                     TempData["Email"] = registrationDTO.Email;
                     HttpContext.Session.SetString("Email", registrationDTO.Email);
                     await _emailNotification.SendEmailAsync(registrationDTO.Email, "Verification", verificationToken);
-                    return Ok(new {returnUrl = "Verification"});
+                    return Ok(new {returnUrl = "/auth/verification"});
                 }
                 return BadRequest("Not Created");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                if (ex is SmtpException)
+                {
+                    return StatusCode(200, "User created successfully but email wasn't sent");
+                }
                 return StatusCode(500, "Error Occurred");
             }
         }
@@ -115,5 +121,6 @@ namespace Presentation.Controllers
                 return StatusCode(500, "Error Occurred");
             }
         }
+      
     }
 }

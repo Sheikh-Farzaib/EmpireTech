@@ -1,5 +1,4 @@
 using Infrastructure;
-using Infrastructure.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +12,9 @@ builder.Services.AddSession(options =>
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,12 +27,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
-
 app.UseSession();
-
-//app.UseMiddleware<Auth>();
-
+app.UseRouting();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}/{id?}");

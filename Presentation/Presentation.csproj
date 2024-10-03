@@ -7,12 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Application\Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    <PackageReference Include="DevExpress.DotNet.Web.ProjectTemplates" Version="24.1.6" />
+    <PackageReference Include="DevExpress15.2" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DevExpress.DotNet.Web.ProjectTemplates" Version="24.1.6" />
+    <ProjectReference Include="..\Application\Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
