@@ -1,0 +1,14 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "DevExpress DataGrid Example";
+}
+
+<div>
+    <dx-data-grid id="gridContainer" data-source="@Model.DataSource">
+        <dxi-column data-field="ID" caption="ID" />
+        <dxi-column data-field="Name" caption="Name" />
+        <dxi-column data-field="Age" caption="Age" />
+        <dxi-column data-field="Email" caption="Email" />
+    </dx-data-grid>
+</div>
